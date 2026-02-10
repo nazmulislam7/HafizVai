@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { RotateCcw, RefreshCcw, ZoomIn, Download, Move, Upload } from 'lucide-react';
+import { RotateCcw, RefreshCcw, ZoomIn, Download, Move, Camera } from 'lucide-react';
 import { ImageState, FrameTemplate } from '../types';
 
 interface FrameEditorProps {
@@ -28,11 +28,12 @@ const FrameEditor: React.FC<FrameEditorProps> = ({ selectedFrame, imageState, se
     const width = canvas.width;
     const height = canvas.height;
 
+    // ক্লিনিং এবং হোয়াইট ব্যাকগ্রাউন্ড
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, width, height);
 
-    // ১. লেয়ার ১: ব্যবহারকারীর ছবি (সবার নিচে)
+    // ১. নিচের লেয়ার: ইউজার ফটো
     if (imageState.src && userImageRef.current && userImageRef.current.complete) {
       ctx.save();
       ctx.translate(width / 2 + imageState.offsetX, height / 2 + imageState.offsetY);
@@ -46,13 +47,13 @@ const FrameEditor: React.FC<FrameEditorProps> = ({ selectedFrame, imageState, se
       ctx.restore();
     }
 
-    // ২. লেয়ার ২: ফিক্সড নির্বাচনী ফ্রেম (সবার উপরে)
+    // ২. উপরের লেয়ার: ফিক্সড ফ্রেম (11.png)
     if (frameImageRef.current && frameImageRef.current.complete) {
       ctx.drawImage(frameImageRef.current, 0, 0, width, height);
     }
   }, [imageState, selectedFrame]);
 
-  // ফিক্সড ফ্রেম লোড
+  // ফ্রেম লোড (11.png)
   useEffect(() => {
     const frameImg = new Image();
     frameImg.crossOrigin = "anonymous";
@@ -60,6 +61,9 @@ const FrameEditor: React.FC<FrameEditorProps> = ({ selectedFrame, imageState, se
     frameImg.onload = () => {
       frameImageRef.current = frameImg;
       draw();
+    };
+    frameImg.onerror = () => {
+      console.warn("Frame (11.png) load failed. Please ensure the file is in the project root.");
     };
   }, [selectedFrame, draw]);
 
@@ -107,10 +111,11 @@ const FrameEditor: React.FC<FrameEditorProps> = ({ selectedFrame, imageState, se
   if (!imageState.src) return null;
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-lg mx-auto animate-in fade-in duration-500">
+    <div className="flex flex-col gap-8 animate-in zoom-in-95 duration-500">
+      {/* ক্যানভাস কার্ড */}
       <div 
         ref={containerRef}
-        className="relative bg-white rounded-[2.5rem] shadow-2xl overflow-hidden cursor-move touch-none border-[10px] border-white group ring-1 ring-emerald-50"
+        className="relative bg-white rounded-[3rem] shadow-2xl overflow-hidden cursor-move touch-none border-[12px] border-white ring-1 ring-slate-100 group"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -126,24 +131,25 @@ const FrameEditor: React.FC<FrameEditorProps> = ({ selectedFrame, imageState, se
           className="w-full h-full block"
         />
         
-        <div className="absolute top-6 right-6 p-2 bg-black/30 backdrop-blur-md rounded-xl text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 text-[10px] font-bold uppercase pointer-events-none">
-          <Move size={14} /> Hold to adjust photo
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 bg-black/50 backdrop-blur-xl rounded-full text-white opacity-0 group-hover:opacity-100 transition-all flex items-center gap-3 text-xs font-bold uppercase tracking-widest pointer-events-none translate-y-4 group-hover:translate-y-0">
+          <Move size={16} /> ছবিটি সরিয়ে জায়গা মতো বসান
         </div>
       </div>
 
-      <div className="bg-white rounded-3xl p-6 shadow-xl border border-emerald-50 space-y-6">
-        <div className="flex items-center justify-between">
-           <h3 className="font-black text-[#065f46] flex items-center gap-2">
-              <ZoomIn size={18} /> ছবি এডিট করুন
+      {/* এডিটিং প্যানেল */}
+      <div className="bg-white rounded-[2.5rem] p-8 shadow-2xl border border-slate-50 space-y-8">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+           <h3 className="font-black text-slate-800 flex items-center gap-3 text-lg">
+              <Camera size={22} className="text-emerald-600" /> ফটো কন্ট্রোল
            </h3>
-           <label className="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full cursor-pointer hover:bg-emerald-100 transition-all border border-emerald-100 flex items-center gap-1.5">
-              <Upload size={12} /> ছবি পরিবর্তন
+           <label className="text-xs font-black uppercase text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full cursor-pointer hover:bg-emerald-100 transition-all border border-emerald-100 flex items-center gap-2">
+              ছবি বদলান
               <input type="file" accept="image/*" className="hidden" onChange={(e) => {
                  const file = e.target.files?.[0];
                  if (file) {
                     const reader = new FileReader();
                     reader.onload = (event) => {
-                       setImageState(prev => ({ ...prev, src: event.target?.result as string }));
+                       setImageState(prev => ({ ...prev, src: event.target?.result as string, zoom: 100, offsetX: 0, offsetY: 0, rotation: 0 }));
                     };
                     reader.readAsDataURL(file);
                  }
@@ -151,43 +157,47 @@ const FrameEditor: React.FC<FrameEditorProps> = ({ selectedFrame, imageState, se
            </label>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-gray-400">জুম নিয়ন্ত্রণ</span>
-            <span className="text-sm font-black text-[#065f46]">{Math.round(imageState.zoom)}%</span>
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between font-black text-slate-500 text-sm">
+              <span>জুম (Zoom)</span>
+              <span className="text-emerald-600 bg-emerald-50 px-4 py-1.5 rounded-xl border border-emerald-100">{Math.round(imageState.zoom)}%</span>
+            </div>
+            <input 
+              type="range" 
+              min="10" 
+              max="500" 
+              value={imageState.zoom} 
+              onChange={(e) => setImageState(prev => ({ ...prev, zoom: Number(e.target.value) }))}
+              className="w-full h-3 bg-slate-100 rounded-full appearance-none cursor-pointer accent-emerald-600"
+            />
           </div>
-          <input 
-            type="range" 
-            min="10" 
-            max="500" 
-            value={imageState.zoom} 
-            onChange={(e) => setImageState(prev => ({ ...prev, zoom: Number(e.target.value) }))}
-            className="w-full h-2.5 bg-emerald-50 rounded-lg appearance-none cursor-pointer accent-[#065f46]"
-          />
-        </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <button 
-            onClick={() => setImageState(prev => ({ ...prev, rotation: prev.rotation - 90 }))}
-            className="flex items-center justify-center gap-2 py-3 bg-emerald-50 hover:bg-emerald-100 text-[#065f46] rounded-2xl font-black transition-all border border-emerald-100 shadow-sm"
-          >
-            <RotateCcw size={18} /> ঘোরান
-          </button>
-          <button 
-            onClick={() => setImageState(prev => ({ ...prev, zoom: 100, rotation: 0, offsetX: 0, offsetY: 0 }))}
-            className="flex items-center justify-center gap-2 py-3 bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-2xl font-black transition-all border border-gray-100 shadow-sm"
-          >
-            <RefreshCcw size={18} /> রিসেট
-          </button>
+          <div className="grid grid-cols-2 gap-4">
+            <button 
+              onClick={() => setImageState(prev => ({ ...prev, rotation: prev.rotation - 90 }))}
+              className="flex items-center justify-center gap-3 py-5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-[1.5rem] font-black transition-all border border-emerald-100 active:scale-95 shadow-sm"
+            >
+              <RotateCcw size={20} /> ঘোরান
+            </button>
+            <button 
+              onClick={() => setImageState(prev => ({ ...prev, zoom: 100, rotation: 0, offsetX: 0, offsetY: 0 }))}
+              className="flex items-center justify-center gap-3 py-5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-[1.5rem] font-black transition-all border border-slate-100 active:scale-95 shadow-sm"
+            >
+              <RefreshCcw size={20} /> রিসেট
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* সেভ বাটন */}
       <button 
         onClick={() => canvasRef.current && onDownload(canvasRef.current)}
-        className="w-full py-6 bg-[#065f46] hover:bg-[#044d39] text-white font-black text-xl rounded-[2rem] shadow-2xl shadow-emerald-200 flex items-center justify-center gap-3 transition-all active:scale-95"
+        className="group w-full py-7 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-2xl rounded-[2.5rem] shadow-2xl shadow-emerald-200 flex items-center justify-center gap-4 transition-all active:scale-95 relative overflow-hidden"
       >
-        <Download size={24} />
-        ফাইনাল ইমেজ সেভ করুন
+        <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+        <Download size={32} />
+        ছবিটি সেভ করুন
       </button>
     </div>
   );

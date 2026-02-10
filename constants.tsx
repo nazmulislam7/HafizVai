@@ -4,9 +4,9 @@ import { AppMode, FrameTemplate } from './types';
 export const FRAMES: FrameTemplate[] = [
   {
     id: 'campaign-frame-fixed',
-    name: 'এ আর হাফিজ উল্যাহ নির্বাচনী ফ্রেম',
-    // এই লিঙ্কটি সরাসরি আপনার দেওয়া ফ্রেম ইমেজটি লোড করবে
-    url: 'https://raw.githubusercontent.com/md-asif-rahmed/social-assets/main/campaign_frame_haiz.png', 
+    name: 'নির্বাচনী ফ্রেম',
+    // আপনার ফোল্ডারে থাকা '11.png' ফাইলটির পাথ এখানে দেওয়া হলো
+    url: './11.png', 
     mode: AppMode.PROFILE,
     aspectRatio: 1
   }
