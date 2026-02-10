@@ -5,7 +5,7 @@ export const FRAMES: FrameTemplate[] = [
   {
     id: 'campaign-frame-fixed',
     name: 'এ আর হাফিজ উল্যাহ নির্বাচনী ফ্রেম',
-    // আপনার দেওয়া ফ্রেমের ইমেজ লিঙ্ক
+    // এই লিঙ্কটি সরাসরি আপনার দেওয়া ফ্রেম ইমেজটি লোড করবে
     url: 'https://raw.githubusercontent.com/md-asif-rahmed/social-assets/main/campaign_frame_haiz.png', 
     mode: AppMode.PROFILE,
     aspectRatio: 1
