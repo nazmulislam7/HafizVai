@@ -1,0 +1,7 @@
+{
+  "name": "Frame Studio",
+  "description": "A feature-rich profile and post frame editor in Bengali, allowing users to upload photos, adjust them within custom overlays, and download high-quality results.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
