@@ -5,7 +5,7 @@ export const FRAMES: FrameTemplate[] = [
   {
     id: 'campaign-frame-fixed',
     name: 'নির্বাচনী ফ্রেম',
-    // আপনার ফোল্ডারে থাকা '11.png' ফাইলটির পাথ এখানে দেওয়া হলো
+    // GitHub Pages-এ হোস্ট করলে যাতে ফাইলটি সহজে পায় সেজন্য রিলেটিভ পাথ
     url: './11.png', 
     mode: AppMode.PROFILE,
     aspectRatio: 1
